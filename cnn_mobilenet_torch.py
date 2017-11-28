@@ -52,16 +52,16 @@ class CNN(nn.Module):
     def __init__(self):
         super(CNN, self).__init__()
 
-        def conv_bn(inp, oup, stride):# 标准卷积
+        def conv_bn(inp, oup, stride):
             return nn.Sequential(
                 nn.Conv2d(inp, oup, 3, stride, 1, bias=False),
                 nn.BatchNorm2d(oup),
                 nn.ReLU(inplace=True)
             )
 
-        def conv_dw(inp, oup, stride): # mobile 卷积
+        def conv_dw(inp, oup, kernel_size=3, stride=1, padding=1):
             return nn.Sequential(
-                nn.Conv2d(inp, inp, 3, stride, 1, groups=inp, bias=False),
+                nn.Conv2d(inp, inp, kernel_size, stride, padding, groups=inp, bias=False),
                 nn.BatchNorm2d(inp),
                 nn.ReLU(inplace=True),
 
@@ -79,18 +79,19 @@ class CNN(nn.Module):
             #     padding=2# if ==1, padding=(kenerl_size-1)/2=(5-1)/2
             # ),
             # nn.ReLU(),# 16, 28, 28
-            conv_dw(1, 16, 1), # mobilenet的深度分离卷积
+            conv_dw(1, 16, 5, 1, 2), # mobilenet的深度分离卷积
             nn.MaxPool2d(kernel_size=2)# 16, 14,14
         )
         self.conv2 = nn.Sequential(
-            nn.Conv2d(# 16 14 14
-                in_channels=16,  # 高度。深度
-                out_channels=32,  # 输出多少高度，也就是卷积核的数目
-                kernel_size=5,
-                stride=1,
-                padding=2  # if ==1, padding=(kenerl_size-1)/2=(5-1)/2
-            ),
-            nn.ReLU(),# 32 14 14
+            # nn.Conv2d(# 16 14 14
+            #     in_channels=16,  # 高度。深度
+            #     out_channels=32,  # 输出多少高度，也就是卷积核的数目
+            #     kernel_size=5,
+            #     stride=1,
+            #     padding=2  # if ==1, padding=(kenerl_size-1)/2=(5-1)/2
+            # ),
+            # nn.ReLU(),# 32 14 14
+            conv_dw(16, 32, 5, 1, 2),  # mobilenet的深度分离卷积
             nn.MaxPool2d(kernel_size=2),# 32 7 7
         )
         self.out = nn.Linear(32*7*7, 10) # 全链接层 二维数据
